@@ -5,35 +5,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
+          
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.5'
-      
-      - name: Backup your code
-        run: |
-          mkdir -p /tmp/backup/lib
-          cp pubspec.yaml /tmp/backup/ || true
-          cp lib/main.dart /tmp/backup/lib/main.dart || true
-          cp -r lib /tmp/backup/ || true
+          channel: 'stable'
 
-      - name: Create Android folder
+      - name: Create Android Project (Fix Gradle)
         run: |
-          rm -rf android
+          # Simpan code kamu
+          cp pubspec.yaml /tmp/pubspec.yaml
+          cp lib/main.dart /tmp/main.dart
+          # Bikin folder android yang hilang
           flutter create . --platforms=android --project-name=shochateyo --org=com.shochateyo --overwrite
+          # Balikin code kamu
+          cp /tmp/pubspec.yaml ./pubspec.yaml
+          cp /tmp/main.dart ./lib/main.dart
 
-      - name: Restore your code
-        run: |
-          cp /tmp/backup/pubspec.yaml ./pubspec.yaml || true
-          cp /tmp/backup/lib/main.dart ./lib/main.dart || true
-          cp -r /tmp/backup/lib/* ./lib/ || true
-          ls -la
-          ls -la android/
-
-      - name: Build
+      - name: Build APK
         run: |
           flutter pub get
           flutter build apk --release --no-tree-shake-icons

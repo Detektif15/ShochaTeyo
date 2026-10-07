@@ -12,10 +12,34 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           flutter-version: '3.22.5'
-      - run: flutter create . --platforms=android --project-name shochateyo
-      - run: flutter pub get
-      - run: flutter build apk --release
-      - uses: actions/upload-artifact@v4
+      
+      - name: Backup your code
+        run: |
+          mkdir -p /tmp/backup/lib
+          cp pubspec.yaml /tmp/backup/ || true
+          cp lib/main.dart /tmp/backup/lib/main.dart || true
+          cp -r lib /tmp/backup/ || true
+
+      - name: Create Android folder
+        run: |
+          rm -rf android
+          flutter create . --platforms=android --project-name=shochateyo --org=com.shochateyo --overwrite
+
+      - name: Restore your code
+        run: |
+          cp /tmp/backup/pubspec.yaml ./pubspec.yaml || true
+          cp /tmp/backup/lib/main.dart ./lib/main.dart || true
+          cp -r /tmp/backup/lib/* ./lib/ || true
+          ls -la
+          ls -la android/
+
+      - name: Build
+        run: |
+          flutter pub get
+          flutter build apk --release --no-tree-shake-icons
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
           name: ShochaTeyo-APK
           path: build/app/outputs/flutter-apk/app-release.apk
